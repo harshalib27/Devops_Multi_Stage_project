@@ -1,0 +1,13 @@
+{
+  "name": "advanced-jenkins-docker-app",
+  "version": "1.0.0",
+  "description": "Sample app for advanced Jenkins pipeline",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "mkdir -p dist && cp index.js dist/index.js",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}
