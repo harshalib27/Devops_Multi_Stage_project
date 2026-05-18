@@ -12,6 +12,7 @@ RUN npm run build
 
 # --- Stage 2: Production Environment ---
 FROM alpine:3.19
+# Pinned versions for ca-certificates and tzdata
 RUN apk --no-cache add ca-certificates=~20241121 tzdata=~2024b
 
 # Create a non-privileged user for security compliance (Hardening)
@@ -21,10 +22,13 @@ WORKDIR /home/appuser
 # Copy only the built artifacts from the builder stage
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
-RUN apk add --no-cache nodejs=~20 npm=~10
 
-# Set proper ownership permissions
-RUN chown -R appuser:appgroup /home/appuser
+# FIX: Consolidated the apk install and chown commands into a single RUN block
+RUN apk add --no-cache nodejs=~20 npm=~10 && \
+    npm list && \
+    npm ci --only=production && \
+    chown -R appuser:appgroup /home/appuser
+
 USER appuser
 
 EXPOSE 3000
