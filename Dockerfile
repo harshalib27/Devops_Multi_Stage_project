@@ -11,7 +11,8 @@ COPY . .
 RUN npm run build
 
 # --- Stage 2: Production Environment ---
-FROM alpine:3.19
+# FIX: Added 'AS production' so the Jenkinsfile build command can find it
+FROM alpine:3.19 AS production
 # Pinned versions for ca-certificates and tzdata
 RUN apk --no-cache add ca-certificates=~20241121 tzdata=~2024b
 
@@ -23,7 +24,7 @@ WORKDIR /home/appuser
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 
-# FIX: Consolidated the apk install and chown commands into a single RUN block
+# Consolidated the apk install and chown commands into a single RUN block
 RUN apk add --no-cache nodejs=~20 npm=~10 && \
     npm list && \
     npm ci --only=production && \
