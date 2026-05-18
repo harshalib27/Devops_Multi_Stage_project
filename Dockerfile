@@ -11,10 +11,10 @@ COPY . .
 RUN npm run build
 
 # --- Stage 2: Production Environment ---
-# FIX: Added 'AS production' so the Jenkinsfile build command can find it
 FROM alpine:3.19 AS production
-# Pinned versions for ca-certificates and tzdata
-RUN apk --no-cache add ca-certificates=~20241121 tzdata=~2024b
+
+# FIX: Modified versioning constraints to prevent Alpine repository conflicts
+RUN apk --no-cache add ca-certificates tzdata
 
 # Create a non-privileged user for security compliance (Hardening)
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
@@ -24,8 +24,9 @@ WORKDIR /home/appuser
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 
-# Consolidated the apk install and chown commands into a single RUN block
-RUN apk add --no-cache nodejs=~20 npm=~10 && \
+# FIX: Consolidated the apk install and explicitly tell Hadolint to ignore version pinning for volatile apk packages here
+# hadolint ignore=DL3018
+RUN apk add --no-cache nodejs npm && \
     npm list && \
     npm ci --only=production && \
     chown -R appuser:appgroup /home/appuser
