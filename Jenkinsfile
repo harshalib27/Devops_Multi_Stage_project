@@ -39,7 +39,7 @@ pipeline {
             steps {
                 echo "Building production image: ${FULL_IMAGE}"
                 // Uses --no-cache dynamically if needed or leverages layer caching
-                sh "docker build --target production -t ${FULL_IMAGE} ."
+                sh "docker build -t ${FULL_IMAGE} ."
             }
         }
 
