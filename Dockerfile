@@ -11,10 +11,11 @@ COPY . .
 RUN npm run build
 
 # --- Stage 2: Production Environment ---
-FROM alpine:3.19 AS production
+# Pinning the base alpine version strictly
+FROM alpine:3.19
 
-# FIX: Modified versioning constraints to prevent Alpine repository conflicts
-RUN apk --no-cache add ca-certificates tzdata
+# FIX (DL3018): Pinning versions using Alpine package manager rules
+RUN apk --no-cache add ca-certificates=20241121-r0 tzdata=2024b-r0
 
 # Create a non-privileged user for security compliance (Hardening)
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
@@ -24,13 +25,11 @@ WORKDIR /home/appuser
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 
-# FIX: Consolidated the apk install and explicitly tell Hadolint to ignore version pinning for volatile apk packages here
-# hadolint ignore=DL3018
-RUN apk add --no-cache nodejs npm && \
-    npm list && \
-    npm ci --only=production && \
-    chown -R appuser:appgroup /home/appuser
+# FIX (DL3018): Pinning nodejs and npm versions explicitly
+RUN apk add --no-cache nodejs=20.15.1-r0 npm=10.2.5-r0 && npm list && npm ci --only=production
 
+# Set proper ownership permissions
+RUN chown -R appuser:appgroup /home/appuser
 USER appuser
 
 EXPOSE 3000
