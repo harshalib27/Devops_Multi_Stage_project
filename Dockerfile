@@ -3,7 +3,6 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./
-# CHANGED: Using npm install instead of npm ci
 RUN npm install
 COPY . .
 RUN npm run build
@@ -20,8 +19,8 @@ WORKDIR /home/appuser
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 
+# FIX: Added the ignore comment right here for the second apk add line
 # hadolint ignore=DL3018
-# CHANGED: Using npm install --omit=dev for production runtime packages
 RUN apk add --no-cache nodejs npm && npm list && npm install --omit=dev
 
 RUN chown -R appuser:appgroup /home/appuser
